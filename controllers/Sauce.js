@@ -5,6 +5,7 @@ const Sauce = require("../models/Sauce");
 
 // Importation du package fs (File System de Node, qui nous donne acces aux fonctions qui permettent
 // de modifier le systeme de fichier, notemment supprimer un fichier)
+//
 const fs = require("fs");
 //
 // controller pour méthode POST
@@ -149,4 +150,138 @@ exports.getAllSauces = (req, res, next) => {
         error: error,
       });
     });
+};
+//
+// controller pour méthode POST like ou dislikes sauce
+//
+// Corps (body) de la demande {userId:Chaine, like:Nombre}
+//
+// Schema de Sauce
+//
+//const sauceSchema = mongoose.Schema({
+//  userId: { type: String, required: true },
+//  name: { type: String, required: true },
+//  manufacturer: { type: String, required: true },
+//  description: { type: String, required: true },
+//  mainPepper: { type: String, required: true },
+//  imageUrl: { type: String, required: true },
+//  heat: { type: Number, required: true },
+//  likes: { type: Number, default: 0 },
+//  dislikes: { type: Number, default: 0 },
+//  usersLiked: [String],      tableau contenant les id des utilisateurs ayant liké
+//  usersDisliked: [String],   tableau contenant les id des utilisateurs aynat disliké
+//});
+//
+// A chaque like ou dislike on incrémente ou on décrémente le nbre de like ou de dislike de une unite
+// si l'utilisateur ne l'a pas déja fait ( son id n'est pas présent dans usersLiked ou usersDisliked ).
+// Un utilisateur ne peut pas aimer ou ne pas aimer une sauce plusieurs fois
+// on met à jour dans le tableau usersLiked ou userDisliked l'id de l'utilisateur qui a liké ou disliké
+//
+exports.likeSauce = (req, res, next) => {
+  const aime = req.body.like;
+  console.log("aime", aime);
+  switch (aime) {
+    case 1:
+      // like = 1 : l'utilisateur aime la sauce
+      // l'utilisateur a t-il deja liké ou disliké pour cette sauce ?
+      // s'il n'a pas deja liké ou disliké (cet utilisateur est absent des tableaux usersLiked et usersDisliked
+      // pour cette sauce) alors
+      // mise à jour de la sauce avec userId passé par le body de la requête
+      // on ajoute 1 au champ likes de Sauce
+      // on met à jour le tableau usersLiked avec son -Id utilisateur
+      //
+      // On recherche la sauce avec son id
+      console.log("Sauce", Sauce);
+      Sauce.findOne({
+        _id: req.params.id,
+      })
+        .then((sauce) => {
+          console.log("La sauce existe");
+          // La sauce existe
+          // On teste maintenant si l'utilisateur a déja like ou dislike cette sauce
+          // La méthode "indexOf" de la classe Array permet de retrouver l'index d'une chaîne dans un tableau.
+          // Elle retourne -1 si la valeur en paramètre n'a pas été trouvée.
+          //
+          console.log(
+            "sauce.usersLiked.indexOf(req.body.userId)",
+            sauce.usersLiked.indexOf(req.body.userId)
+          );
+          console.log(
+            "sauce.usersDisliked.indexOf(req.body.userId)",
+            sauce.usersDisliked.indexOf(req.body.userId)
+          );
+          if (
+            sauce.usersLiked.indexOf(req.body.userId) == -1 &&
+            sauce.usersDisliked.indexOf(req.body.userId) == -1
+          ) {
+            console.log(
+              "utilisateur non present dans tableau des likes et dans tableau des non likes"
+            );
+            //
+            // l'utilisateur n'est pas présent dans le tableau usersLiked et n'est pas présent dan le tableau usersDisliked
+            // il peut donc liker
+            //
+            //
+            // L'utilisateur n'est pas non plus présent dans le tableau usersDisliked
+            // on peut mettre à jour le like dans la sauce
+            // avec la methode updateOne () de express avec en paramètre le filtre de maj et
+            // les données à mettre à jour
+            // ici pour le filtre le _id de la sauce doit-être égal au id de la requete et les zones à mettre à jour
+            // sont likes auquel il faut rajouter 1
+            // et le tableau des likes (usersLiked) en rajoutant en fin de tableau l'Id du user
+            // qui a liké
+            //
+            console.log("req.params.id", req.params.id);
+            console.log("_id", sauce._id);
+            console.log("req.body.userId", req.body.userId);
+            Majlikes = sauce.likes + 1;
+            console.log("Majlikes", Majlikes);
+            console.log("sauce.usersLiked", sauce.usersLiked);
+            sauce.usersLiked.push(req.body.userId);
+            console.log("sauce.usersLiked", sauce.usersLiked);
+            MajusersLiked = sauce.usersLiked;
+            console.log("MajusersLiked", MajusersLiked);
+
+            Sauce.updateOne({
+              _id: req.params.id,
+              likes: Majlikes,
+              usersLiked: MajusersLiked,
+            })
+              .then(() =>
+                res.status(200).json({ message: "Votre like a été mis à jour" })
+              )
+              .catch((error) => res.sattus(404).json({ error }));
+          } else {
+            res.status(200).json({
+              message:
+                "Votre like ne peut pas être comptabilisé, vous avez déja émis un avis pour cette sauce !",
+            });
+          }
+          //res.status(200).json(sauce);
+        })
+        .catch((error) => {
+          res.status(404).json({
+            error: error,
+          });
+        });
+      break;
+    case -1:
+      // like = -1 : l'utilisateur n'aime pas la sauce
+      // l'utilisateur a t-il deja liké ou disliké pour cette sauce ?
+      // s'il n'a pas deja liké ou disliké (cet utilisateur est absent des tableaux usersLiked et usersDisliked
+      // pour cette sauce) alors
+      // mise à jour de la sauce avec userId passé par le body de la requête
+      // on ajoute 1 au champ dislikes de Sauce
+      // on met à jour le tableau usersDisliked avec son -Id utilisateur
+      //
+      break;
+    default:
+    // like = 0 : l'utilisateur annule aime ou n'aime pas
+    // vérification si présence de l'utilisateur dans les tableaux userLiked et userDisliked
+    // si présence dans usersLiked on enlève l'ID de cet utilisateur du tableau userLiked et on ajoute -1
+    // à likes de Sauce
+    // si présence dans usersDiliked on enlève l'ID de cet utilisateur du tableau userLiked et on ajoute -1
+    // à likes de Sauce
+    //
+  }
 };

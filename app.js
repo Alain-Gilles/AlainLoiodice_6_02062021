@@ -12,6 +12,7 @@ const express = require("express");
 //
 // Pour gérer les demande POST provenant des applications frontend, nous devrons être capables d'extraire l'objet JSON de la demande.
 // Pour ce faire nous utiliseront le package  body-parser.
+// body-parser est le middleware d'analyse des corps de requêtes entrants (body) afin de le transformer en objet JSON
 //
 const bodyParser = require("body-parser");
 //
@@ -26,6 +27,9 @@ const mongoose = require("mongoose");
 //
 // Afin de pouvoir traiter les requêtes vers la route/images, il faut rendre le dossier images static
 // il faut donc tout d'abord récupérer le chemin du serveur
+// Le module "path" fournit des utilitaires pour travailler avec les chemins de fichiers et de répertoires. Il est accessible via :
+// const path = require('path');
+//
 //
 const path = require("path");
 //
@@ -101,6 +105,18 @@ app.use(bodyParser.json());
 // Il faut indiquer à Express qu'il faut gérer la ressource images de manière static
 // (un sous répertoire de notre répertoire de base, __dirname) à chaque fois qu'elle
 // reçoit une requête vers la route /images.
+//
+// La méthodepath.join() joint tous les pathsegments donnés en utilisant le séparateur spécifique
+// à la plate-forme comme délimiteur, puis normalise le chemin résultant.
+// Ex path.join('/foo', 'bar', 'baz/asdf', 'quux', '..'); => '/foo/bar/baz/asdf'
+//
+// Dans un script de nœud __dirname renvoie le chemin du dossier où réside le fichier JavaScript actuel.
+// __filename et __dirname sont utilisés pour obtenir le nom de fichier et le nom de répertoire du fichier en cours d'exécution.
+//
+// Les fichiers statiques sont des fichiers que les clients téléchargent tels quels à partir du serveur.
+// Express, par défaut, ne vous permet pas de servir des fichiers statiques.
+// Vous devez l'activer à l'aide du middleware intégré suivant. app.use(express.static('repertoire'));
+//
 app.use("/images", express.static(path.join(__dirname, "images")));
 //
 // Nous voulons que pour la route /api/sauces on utilise le router sauceRoutes

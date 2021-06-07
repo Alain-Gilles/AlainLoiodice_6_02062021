@@ -6,15 +6,31 @@ const express = require("express");
 //
 const router = express.Router();
 //
-// importation du controller pour associer les fonctions aux différentes routes
+// importation du controller pour associer les fonctions aux différentes routes User
 //
 const userCtrl = require("../controllers/User");
 //
 // on créait deux routes POST
-// le premier sera à /signup et on va utiliser la méthode signup
-// le second à /login et on va utiliser la méthode login
-// ce sera des routes POST car le fontend va aussi envoyer des informations
-// l'adresse mail et le mot de passe
+//
+// Création d'un utilisateur
+//
+// La première route verbe POST  Paramètres /api/auth/signup
+// Le chemin principal a été défini dans app.js (app.use("/api/auth", userRoutes);)
+// le chemin sera donc ici /signup
+// Corps de la demande {email:string, password: string}
+// Reponse attendue {message:string}
+// Fonction : Chiffre le mot de passe de l'utilisateur, ajoute l'utilisateur à la base de données
+//
+// Connexion d'un utilisateur
+//
+// La seconde route verbe POST  Paramètres /api/auth/login
+// Le chemin principal a été défini dans app.js (app.use("/api/auth", userRoutes);)
+// le chemin sera donc ici /login
+// Corps de la demande {email:string, password: string}
+// Reponse attendue {userID:string, token:string}
+// Fonction : Vérifie les informations d'identification de l'utilisateur
+// en renvoyant l'identifiant userID depuis la base de données et un jeton
+// Web JSON signé contenant également l'identifiant userID
 //
 router.post("/signup", userCtrl.signup);
 router.post("/login", userCtrl.login);

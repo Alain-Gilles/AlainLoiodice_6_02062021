@@ -1,4 +1,3 @@
-// schéma de données qui contient le schéma de données userSchema qui définit les utilisateurs
 // Importation de mongoose
 // Mongoose est un framework JavaScript couramment utilisé dans une application Node.js avec une base de données MongoDB.
 // Mongoose est un outil de modélisation d'objets MongoDB conçu pour fonctionner dans un environnement asynchrone.
@@ -12,12 +11,22 @@ const mongoose = require("mongoose");
 //
 const uniqueValidator = require("mongoose-unique-validator");
 //
-// Création du Schéma de données de User
+// Création du Schéma de données de User qui définit les utilisateurs
+//
+// Tout dans Mongoose commence par un schéma.
+// Chaque schéma correspond à une collection MongoDB et définit la forme
+// des documents au sein de cette collection.
+// Par défaut, Mongoose ajoute une propriété _id à vos schémas.
+// Lorsque vous créez un nouveau document avec la propriété _id ajoutée automatiquement ,
+// Mongoose crée un nouveau _id type ObjectId dans votre document.
+// Dans MongoDB et Mongoose , les identifiants sont des objets par défaut.
 //
 const userSchema = mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
 });
+//
+// Le schema utilise le package mongoose-unique-validator importé plus haut
 //
 userSchema.plugin(uniqueValidator);
 //
