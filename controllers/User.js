@@ -32,24 +32,97 @@ exports.signup = (req, res, next) => {
   // Comme adresse email on va passer l'adresse qui est fournie dans le corps de la requête.
   // Comme mot de passe on va enregister le hash qui est crypté
   //
-  bcrypt
-    .hash(req.body.password, 10)
-    .then((hash) => {
-      const user = new User({
-        email: req.body.email,
-        password: hash,
-      });
-      //
-      // on utilise la methode save de notre user pour l'enregistrer dans la base de données
-      // dans le then on revoie un status 201 pour une création de ressources et un message : utilisateur créé
-      // dans le catch on renvoie un code status 400 (Bad Request )
-      //
-      user
-        .save()
-        .then(() => res.status(201).json({ message: "Utilisateur créé !" }))
-        .catch((error) => res.status(400).json({ error }));
-    })
-    .catch((error) => res.status(500).json({ error }));
+
+  /////////////////////////////////////////////////////
+  //
+  // Test validation du mot de passe
+  // Importation du package password-validator
+  // Package qui permet de tester la validation d'un mot de passe selon un certain nombre
+  // de règles paramétrables
+  //
+  var passwordValidator = require("password-validator");
+  // Create a schema
+  var schema = new passwordValidator();
+
+  // Add properties to it
+  schema
+    .is()
+    .min(8) // Minimum length 8
+    .is()
+    .max(100) // Maximum length 100
+    .has()
+    .uppercase() // Must have uppercase letters
+    .has()
+    .lowercase() // Must have lowercase letters
+    .has()
+    .digits(2) // Must have at least 2 digits
+    .has()
+    .not()
+    .spaces() // Should not have spaces
+    .is()
+    .not()
+    .oneOf(["Passw0rd", "Password123"]); // Blacklist these values
+  //
+  //
+  console.log("req.body.password", req.body.password);
+  console.log(
+    "schema.validate(req.body.password)",
+    schema.validate(req.body.password)
+  );
+  //
+  // On test au préalable la validité du mot de passe par appel du module password-validator
+  // On lui passe la chaine de caractères à valider ici req.body.password
+  // on a auparavant défini dans la variable shéma le schéma des controles que l'on veut effectuer
+  // Le mot de passe doit être au minimum de 8 caractères et de 100 caractères au maximum
+  // Il doit contenir des Majuscules et des minuscules
+  // et au mons deux chiffres
+  // Les espaces ne sont pas autorisés
+  //
+  /////////////////////////////////////////////////////
+  //
+  // Si le mot de passe comrespond au shéma (il est considéré comme valide)
+  //
+  if (schema.validate(req.body.password)) {
+    //
+    ////////////////////////////////////////////////////
+    //
+    bcrypt
+      .hash(req.body.password, 10)
+      .then((hash) => {
+        const user = new User({
+          email: req.body.email,
+          password: hash,
+        });
+        //
+        // on utilise la methode save de notre user pour l'enregistrer dans la base de données
+        // dans le then on renvoie un status 201 pour une création de ressources et un message : utilisateur créé
+        // dans le catch on renvoie un code status 400 (Bad Request )
+        //
+        user
+          .save()
+          .then(() => res.status(201).json({ message: "Utilisateur créé !" }))
+          .catch((error) => res.status(400).json({ error }));
+      })
+      .catch((error) => res.status(500).json({ error }));
+    //
+    ////////////////////////////////////////////////////
+    //
+    // Le mot de passe ne correspond pas au shema (donc considéré comme invalide)
+    //
+    // L'instruction try...catch regroupe des instructions à exécuter et définit une réponse si l'une de ces instructions provoque une exception.
+    // L'instruction throw permet de lever une exception définie par l'utilisateur.
+    // L'exécution de la fonction courante sera stoppée (les instructions situées après l'instruction throw ne seront pas exécutées)
+    // et le contrôle sera passé au premier bloc catch de la pile d'appels.
+    //
+  } else {
+    try {
+      throw "Le mot de passe est erroné de 8 à 100 caractères, dont Majuscules, minuscules, au moins 2 chiffres et pas espace !";
+    } catch (error) {
+      res.status(400).json({ error });
+    }
+  }
+  //
+  /////////////////////////////////////////////////////
   //
 };
 
