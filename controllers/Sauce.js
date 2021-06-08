@@ -178,9 +178,16 @@ exports.getAllSauces = (req, res, next) => {
 // on met à jour dans le tableau usersLiked ou userDisliked l'id de l'utilisateur qui a liké ou disliké
 //
 exports.likeSauce = (req, res, next) => {
+  //
+  // on recupère le code like envoyé par l'application 1 like / 2 dislike / 0 annulation like ou dislike
+  //
   const aime = req.body.like;
+
+  console.log("req.body", req.body);
   console.log("aime", aime);
+
   switch (aime) {
+    //
     case 1:
       // like = 1 : l'utilisateur aime la sauce
       // l'utilisateur a t-il deja liké ou disliké pour cette sauce ?
@@ -191,25 +198,19 @@ exports.likeSauce = (req, res, next) => {
       // on met à jour le tableau usersLiked avec son -Id utilisateur
       //
       // On recherche la sauce avec son id
+
       console.log("Sauce", Sauce);
+
       Sauce.findOne({
         _id: req.params.id,
       })
         .then((sauce) => {
-          console.log("La sauce existe");
+          //
           // La sauce existe
           // On teste maintenant si l'utilisateur a déja like ou dislike cette sauce
           // La méthode "indexOf" de la classe Array permet de retrouver l'index d'une chaîne dans un tableau.
           // Elle retourne -1 si la valeur en paramètre n'a pas été trouvée.
           //
-          console.log(
-            "sauce.usersLiked.indexOf(req.body.userId)",
-            sauce.usersLiked.indexOf(req.body.userId)
-          );
-          console.log(
-            "sauce.usersDisliked.indexOf(req.body.userId)",
-            sauce.usersDisliked.indexOf(req.body.userId)
-          );
           if (
             sauce.usersLiked.indexOf(req.body.userId) == -1 &&
             sauce.usersDisliked.indexOf(req.body.userId) == -1
@@ -219,10 +220,7 @@ exports.likeSauce = (req, res, next) => {
             );
             //
             // l'utilisateur n'est pas présent dans le tableau usersLiked et n'est pas présent dan le tableau usersDisliked
-            // il peut donc liker
             //
-            //
-            // L'utilisateur n'est pas non plus présent dans le tableau usersDisliked
             // on peut mettre à jour le like dans la sauce
             // avec la methode updateOne () de express avec en paramètre le filtre de maj et
             // les données à mettre à jour
@@ -231,26 +229,15 @@ exports.likeSauce = (req, res, next) => {
             // et le tableau des likes (usersLiked) en rajoutant en fin de tableau l'Id du user
             // qui a liké
             //
-            console.log("req.params.id", req.params.id);
-            console.log("_id", sauce._id);
-            console.log("req.body.userId", req.body.userId);
-            Majlikes = sauce.likes + 1;
-            console.log("Majlikes", Majlikes);
-            console.log("sauce.usersLiked", sauce.usersLiked);
+            sauce.likes++;
             sauce.usersLiked.push(req.body.userId);
-            console.log("sauce.usersLiked", sauce.usersLiked);
-            MajusersLiked = sauce.usersLiked;
-            console.log("MajusersLiked", MajusersLiked);
 
-            Sauce.updateOne({
-              _id: req.params.id,
-              likes: Majlikes,
-              usersLiked: MajusersLiked,
-            })
+            sauce
+              .save()
               .then(() =>
                 res.status(200).json({ message: "Votre like a été mis à jour" })
               )
-              .catch((error) => res.sattus(404).json({ error }));
+              .catch((error) => res.status(404).json({ error }));
           } else {
             res.status(200).json({
               message:
@@ -260,11 +247,11 @@ exports.likeSauce = (req, res, next) => {
           //res.status(200).json(sauce);
         })
         .catch((error) => {
-          res.status(404).json({
-            error: error,
-          });
+          res.status(404).json({ error });
         });
+
       break;
+    //
     case -1:
       // like = -1 : l'utilisateur n'aime pas la sauce
       // l'utilisateur a t-il deja liké ou disliké pour cette sauce ?
@@ -274,14 +261,76 @@ exports.likeSauce = (req, res, next) => {
       // on ajoute 1 au champ dislikes de Sauce
       // on met à jour le tableau usersDisliked avec son -Id utilisateur
       //
+
+      console.log("Sauce", Sauce);
+
+      Sauce.findOne({
+        _id: req.params.id,
+      })
+        .then((sauce) => {
+          //
+          // La sauce existe
+          // On teste maintenant si l'utilisateur a déja like ou dislike cette sauce
+          // La méthode "indexOf" de la classe Array permet de retrouver l'index d'une chaîne dans un tableau.
+          // Elle retourne -1 si la valeur en paramètre n'a pas été trouvée.
+          //
+          if (
+            sauce.usersLiked.indexOf(req.body.userId) == -1 &&
+            sauce.usersDisliked.indexOf(req.body.userId) == -1
+          ) {
+            console.log(
+              "utilisateur non present dans tableau des likes et dans tableau des non likes"
+            );
+            //
+            // l'utilisateur n'est pas présent dans le tableau usersLiked et n'est pas présent dan le tableau usersDisliked
+            //
+            // L'utilisateur n'est pas non plus présent dans le tableau usersDisliked
+            // on peut mettre à jour le Dislike dans la sauce
+            // avec la methode updateOne () de express avec en paramètre le filtre de maj et
+            // les données à mettre à jour
+            // ici pour le filtre le _id de la sauce doit-être égal au id de la requete et les zones à mettre à jour
+            // sont Dislikes auquel il faut rajouter 1
+            // et le tableau des Dislikes (usersDisliked) en rajoutant en fin de tableau l'Id du user
+            // qui a Disliké
+            //
+            sauce.dislikes++;
+            sauce.usersDisliked.push(req.body.userId);
+
+            sauce
+              .save()
+              .then(() =>
+                res
+                  .status(200)
+                  .json({ message: "Votre Dislike a été mis à jour" })
+              )
+              .catch((error) => res.status(404).json({ error }));
+          } else {
+            res.status(200).json({
+              message:
+                "Votre Dislike ne peut pas être comptabilisé, vous avez déja émis un avis pour cette sauce !",
+            });
+          }
+          //res.status(200).json(sauce);
+        })
+        .catch((error) => {
+          res.status(404).json({ error });
+        });
+
       break;
-    default:
-    // like = 0 : l'utilisateur annule aime ou n'aime pas
-    // vérification si présence de l'utilisateur dans les tableaux userLiked et userDisliked
-    // si présence dans usersLiked on enlève l'ID de cet utilisateur du tableau userLiked et on ajoute -1
-    // à likes de Sauce
-    // si présence dans usersDiliked on enlève l'ID de cet utilisateur du tableau userLiked et on ajoute -1
-    // à likes de Sauce
     //
+    default:
+      // like = 0 : l'utilisateur annule aime ou n'aime pas
+      // vérification si présence de l'utilisateur dans les tableaux userLiked et userDisliked
+      // si présence dans usersLiked on enlève l'ID de cet utilisateur du tableau userLiked et on ajoute -1
+      // a likes de Sauce
+      // si présence dans usersDiliked on enlève l'ID de cet utilisateur du tableau userLiked et on ajoute -1
+      // à likes de Sauce
+      //
+      /////////////////////////////////////////
+
+      ////////////////////////////////////
+      res.status(200).json({
+        message: "Traitement non encore effectue",
+      });
   }
 };
