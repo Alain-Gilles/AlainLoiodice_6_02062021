@@ -25,7 +25,7 @@ const fs = require("fs");
 // multer qui a généré ce nom de fichier
 // on va modifier l'url de l'image  imageUrl
 // on a accès au nom du fichier avec req.file.filename mais cela ne suffit pas car on aura que le nom du fichier et pas
-// l'url complète. On porrait utiliser localhost:3000 mais cela ne fonctionnerait plus en production
+// l'url complète. On pourrait utiliser localhost:3000 mais cela ne fonctionnerait plus en production
 // il faut quelque chose de dynamique qui va récupérer les segments de l'url ou se trouve notre image
 // on créait une chaine complexe (altGr+7+espace  ``)
 // on commence par req.protocol  ici il s'agit soit de http soit de https généralement ensuite ://
