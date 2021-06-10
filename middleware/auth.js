@@ -1,3 +1,13 @@
+//
+// On aura besoin du package dotenv pour récupérer les variables environnement
+// Pour gérer les variables d'environnement on a besoin d'importer le package dotenv
+// Il s'agit de variables locales mises à disposition d'une application.
+// Ce module charge les variables d'environnement à partir d'un fichier .env que vous créez et
+// les ajoute à l'objet process.env qui est mis à la disposition de l'application.
+//
+require("dotenv").config({ path: "./config/.env" });
+//
+
 // middleware d'authentification
 //
 // On aura besoin du package jsonwebtoken pour vérifier les token
@@ -23,12 +33,13 @@ module.exports = (req, res, next) => {
     const token = req.headers.authorization.split(" ")[1];
     //
     // La deuxième étape c'est de décoder le token.
-    // Utilisation du package jsonwebtoken et la fonction verify avec en premier argument ce que l'on veut vérifier (ici le token)
+    // Utilisation du package jsonwebtoken (jwt) et la fonction verify avec en premier argument ce que l'on veut vérifier (ici le token)
     // le deuxième argument contient la clé secrète de codage/décodage (remarque en production la clé sera plus longue et plus complexe)
     // le token décodé devient un objet javascript classique
     // On va pouvoir récupérer le userId qui est dedans, car on la encodé exprès dans le token
     //
-    const decodedToken = jwt.verify(token, "RANDOM_TOKEN_SECRET");
+    //const decodedToken = jwt.verify(token, "RANDOM_TOKEN_SECRET");
+    const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
     const userId = decodedToken.userId;
     // On veut vérifier que s'il y a un userId dans le corps de la requête il corresponde bien à celui du token
     // donc s'il y a un userId dans le corps de la requête et que cet userId est différent du userId contenu dans le token

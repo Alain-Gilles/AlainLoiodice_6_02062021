@@ -2,6 +2,15 @@
 // middleware (fonction) signup pour la création de nouveaux utilisateurs user dans la base de donnée
 // à partir de l'inscription depuis l'application Frontend
 //
+// On aura besoin du package dotenv pour récupérer les variables environnement
+// Pour gérer les variables d'environnement on a besoin d'importer le package dotenv
+// Il s'agit de variables locales mises à disposition d'une application.
+// Ce module charge les variables d'environnement à partir d'un fichier .env que vous créez et
+// les ajoute à l'objet process.env qui est mis à la disposition de l'application.
+//
+require("dotenv").config({ path: "./config/.env" });
+//
+//
 // importation du package de cryptage pour les mots de passe
 //
 const bcrypt = require("bcrypt");
@@ -18,7 +27,7 @@ exports.signup = (req, res, next) => {
   //
   // Logique de la fonction signup
   // La fonction signup va crypter le mot de passe et créer un nouveau user avec le mot de passe crypté
-  // dans passé dans le corps de la requête. Le signup on va commencer par hacher le mot de passe.
+  // passé dans le corps de la requête. Le signup on va commencer par hacher le mot de passe.
   // nous appelons pour cela la fonction de hachage de bcrypt
   // et lui demandons de « saler » le mot de passe 10 fois.
   // Plus la valeur est élevée, plus l'exécution de la fonction sera longue, et plus le hachage sera sécurisé.
@@ -80,7 +89,7 @@ exports.signup = (req, res, next) => {
   //
   /////////////////////////////////////////////////////
   //
-  // Si le mot de passe comrespond au shéma (il est considéré comme valide)
+  // Si le mot de passe correspond au shéma (il est considéré comme valide)
   //
   if (schema.validate(req.body.password)) {
     //
@@ -157,7 +166,7 @@ exports.signup = (req, res, next) => {
 // un user._id    id de l'utilisateur pour la base ainsi qu'un 'TOKEN'. La réponse sera envoyée, la connexion sera validée.
 // token : on va appeler une fonction de jsonwebtoken, la fonction sign() avec comme premier argument les données que l'on
 // veut encoder (le payload) ici un objet avec le userId qui sera l'identifiant du user comme cela on est sur que cette
-// requete correspond bien au userId.
+// requete corresponde bien au userId.
 // Le second argument c'est la clé secrète por l'encodage
 // Le troisème argument est un argument de configuration ou l'on va appliquer une expiration pour notre token de 24 heures.
 // Chaque token durear 24h , s'il a plus de 24h il ne sera plus considéré comme valable.
@@ -176,7 +185,7 @@ exports.login = (req, res, next) => {
           }
           res.status(200).json({
             userId: user._id,
-            token: jwt.sign({ userId: user._id }, "RANDOM_TOKEN_SECRET", {
+            token: jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
               expiresIn: "24h",
             }),
           });
@@ -185,3 +194,28 @@ exports.login = (req, res, next) => {
     })
     .catch((error) => res.status(500).json({ error }));
 };
+//////////////
+//////////////
+// exports.login = (req, res, next) => {
+//   User.findOne({ email: req.body.email })
+//     .then((user) => {
+//       if (!user) {
+//         return res.status(401).json({ error: "Utilisateur non trouvé !" });
+//       }
+//       bcrypt
+//         .compare(req.body.password, user.password)
+//         .then((valid) => {
+//           if (!valid) {
+//             return res.status(401).json({ error: "Mot de passe incorrect !" });
+//           }
+//           res.status(200).json({
+//             userId: user._id,
+//             token: jwt.sign({ userId: user._id }, "RANDOM_TOKEN_SECRET", {
+//               expiresIn: "24h",
+//             }),
+//           });
+//         })
+//         .catch((error) => res.status(500).json({ error }));
+//     })
+//     .catch((error) => res.status(500).json({ error }));
+// };

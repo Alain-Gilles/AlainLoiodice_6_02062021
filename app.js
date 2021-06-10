@@ -10,6 +10,13 @@
 //
 const express = require("express");
 //
+// Pour gérer les variables d'environnement on a besoin d'importer le package dotenv
+// Il s'agit de variables locales mises à disposition d'une application.
+// Ce module charge les variables d'environnement à partir d'un fichier .env que vous créez et
+// les ajoute à l'objet process.env qui est mis à la disposition de l'application.
+//
+require("dotenv").config({ path: "./config/.env" });
+//
 // Pour gérer les demande POST provenant des applications frontend, nous devrons être capables d'extraire l'objet JSON de la demande.
 // Pour ce faire nous utiliseront le package  body-parser.
 // body-parser est le middleware d'analyse des corps de requêtes entrants (body) afin de le transformer en objet JSON
@@ -49,14 +56,26 @@ const userRoutes = require("./routes/User");
 // parametrage de l'acces à mongo bd addresse serveur et MP
 //
 // avec mongoose connect nous précisons sur quelle base de données nous allons travailler
+// Remarque le user et le mot de passe sont stockés dans une variable environnement
+// dossier config fichier .env variable DB_USER_PASS
 //
 mongoose
   .connect(
-    "mongodb+srv://user-oc-projet6:DyrI2qSavAoDfC0s@cluster0.buaka.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+    "mongodb+srv://" +
+      process.env.DB_USER_PASS +
+      "@cluster0.buaka.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
     { useNewUrlParser: true, useUnifiedTopology: true }
   )
   .then(() => console.log("Connexion à MongoDB réussie !"))
   .catch(() => console.log("Connexion à MongoDB échouée !"));
+
+// mongoose
+//   .connect(
+//     "mongodb+srv://user-oc-projet6:DyrI2qSavAoDfC0s@cluster0.buaka.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+//     { useNewUrlParser: true, useUnifiedTopology: true }
+//   )
+//   .then(() => console.log("Connexion à MongoDB réussie !"))
+//   .catch(() => console.log("Connexion à MongoDB échouée !"));
 //
 // app est une application express
 //
