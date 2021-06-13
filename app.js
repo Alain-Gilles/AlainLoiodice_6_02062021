@@ -13,7 +13,7 @@ const express = require("express");
 // Pour gérer les variables d'environnement on a besoin d'importer le package dotenv
 // Il s'agit de variables locales mises à disposition d'une application.
 // Ce module charge les variables d'environnement à partir d'un fichier .env que vous créez et
-// les ajoute à l'objet process.env qui est mis à la disposition de l'application.
+// les ajoutez à l'objet process.env qui est mis à la disposition de l'application.
 //
 require("dotenv").config({ path: "./config/.env" });
 //
@@ -27,7 +27,7 @@ const bodyParser = require("body-parser");
 // Mongoose est un outil de modélisation d'objets MongoDB conçu pour fonctionner dans un environnement asynchrone.
 // Mongoose prend en charge à la fois les promesses et les rappels.
 //
-// MongoDB est une base de données qui stocke vos données sous forme de documents.
+// MongoDB est une base de données qui stock vos données sous forme de documents.
 // Le plus souvent, ces documents ressemblent à une structure de type JSON
 //
 const mongoose = require("mongoose");
@@ -42,9 +42,9 @@ const path = require("path");
 //
 // importation du router dans app que nous appelons saucesRoutes
 //
-// Le router permet de séparer les routes du fichier index.js principal
+// Le router permet de séparer les routes du fichier app.js principal
 // Ils aident à construire un code maintenable. Vous devez définir vos routes relatives à une entité dans un seul fichier
-// et l'inclure en utilisant la méthode ci-dessous dans votre fichier index.js .
+// et l'inclure en utilisant la méthode ci-dessous dans votre fichier app.js .
 //
 const sauceRoutes = require("./routes/Sauce");
 //
@@ -69,16 +69,6 @@ mongoose
   .then(() => console.log("Connexion à MongoDB réussie !"))
   .catch(() => console.log("Connexion à MongoDB échouée !"));
 
-// mongoose
-//   .connect(
-//     "mongodb+srv://user-oc-projet6:DyrI2qSavAoDfC0s@cluster0.buaka.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
-//     { useNewUrlParser: true, useUnifiedTopology: true }
-//   )
-//   .then(() => console.log("Connexion à MongoDB réussie !"))
-//   .catch(() => console.log("Connexion à MongoDB échouée !"));
-//
-// app est une application express
-//
 const app = express();
 
 // CORS  Cross Origin Ressource Sharing

@@ -3,7 +3,7 @@
 //
 const Sauce = require("../models/Sauce");
 
-// Importation du package fs (File System de Node, qui nous donne acces aux fonctions qui permettent
+// Importation du module fs (File System de Node, qui nous donne acces aux fonctions qui permettent
 // de modifier le systeme de fichier, notemment supprimer un fichier)
 //
 const fs = require("fs");
@@ -71,20 +71,21 @@ exports.getOneSauce = (req, res, next) => {
 // Le format de la requête ne sera pas le même dans le premier cas nous recevons uniquement les données JSON
 // dans le second cas nous recevons l'élément form-data et le fichier modifié (on aura un req.file)
 //
-// On rajoute une constante sauceObject et on utilise l'opérateur ternaire ( condition ? exprSiVrai : exprSiFaux)
+// On rajoute une constante sauceObject et on utilise l'opérateur ternaire sur req.file ( condition ? exprSiVrai : exprSiFaux)
 // pour savoir si req.file existe. S'il existe on aura
 // un type d'objet et s'il n'existe pas on aura un autre type d'objet
 // const sauceObject = req.file ?
 //   { } : { };
-// Si req.file n'existe pas on va simplement faire une copie de res.body { } : { ...req.body };
-// Si le fichier existe on va récupérer avec ...JSON.parse(req.body.sauce) les informations sur l'objet
-// qui sont dans cette partie de la requête
-// et on va générer l'image url car c'est une nouvelle image
+// Si req.file  existe alors on affecte à sauceObject un objet contenant le req.body.sauce parsé et l'url du fichier image
+// Si req.file n'existe pas on va simplement affecter à sauceObject une copie de res.body { } : { ...req.body };
 // En résumé
 // Si on trouve un fichier : on récupère la chaine de caractère, on la parse en objet et on modifie l'imageUrl
 // sinon on prend simplement le corps de la requête
-// et dans Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
+// dans Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
 // ...sauceObject  correspond à l'objet que l'on a créé peut importe son format
+//
+// req.param()recherche le chemin d'URL, le corps et la chaîne de requête de la demande ( dans cet ordre ) pour le paramètre spécifié
+// Route put /api/sauces/:id
 //
 exports.modifySauce = (req, res, next) => {
   const sauceObject = req.file
