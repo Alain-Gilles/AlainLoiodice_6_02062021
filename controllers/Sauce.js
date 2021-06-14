@@ -66,18 +66,42 @@ exports.getOneSauce = (req, res, next) => {
 //
 // Controller pour méthode PUT
 //
-// Deux cas sont à traiter l'utilisateur a modifié des informations sans rajouter de nouvelles images
-// et deuxième cas l'utilisateur a rajouté une nouvelle image
-// Le format de la requête ne sera pas le même dans le premier cas nous recevons uniquement les données JSON
-// dans le second cas nous recevons l'élément form-data et le fichier modifié (on aura un req.file)
+// Deux cas sont à traiter dans la modification d'une sauce
+// L'utilisateur a modifié l'image de la sauce ou l'utilisateur n'a pas modifié l'image de la sauce
 //
-// On rajoute une constante sauceObject et on utilise l'opérateur ternaire sur req.file ( condition ? exprSiVrai : exprSiFaux)
-// pour savoir si req.file existe. S'il existe on aura
-// un type d'objet et s'il n'existe pas on aura un autre type d'objet
-// const sauceObject = req.file ?
-//   { } : { };
-// Si req.file  existe alors on affecte à sauceObject un objet contenant le req.body.sauce parsé et l'url du fichier image
-// Si req.file n'existe pas on va simplement affecter à sauceObject une copie de res.body { } : { ...req.body };
+// Comment détecte t-on que l'image a été modifiée ?
+// par la pésence dans la requête d'un req.file (objet qui contient entre autre le file name
+// par ex. filename: 'sauces-tomates-ketchup.jpg1623666210937.jpg')
+//
+// Si l'utilisateur a modifié l'image de la sauce,
+//            il faut supprimer dans le dossier images l'ancienne photo
+//            le format de la requête contiendra l'élément form-data ainsi qu'un fichier req.file
+//
+// Si l'utilisateur n'a pas modifier l'image de la sauce le format de la requête contiendra les données JSON
+// Il faut commencer par supprimer l'ancienne image dans le répertoire images
+//
+// On commence par tester si req.file existe
+//    si c'est le cas l'image de la sauce a été modifié
+//    on effectue un Sauce.findOne avec comme paramètre de sélection _id contenu dans la base doit-être égal à l'id présent dans les paramètres de la requête
+//    Si la sauce est trouvé, on va récupérer dans sauce.imageUrl qui est de type http://localhost:3000/images/sauce-tomate.jpg1623672963145.jpg
+//    la chaine de caractères qui suit la chaine '/images/' et qui contient le nom du fichier à supprimer
+//    pour se faire on effectue un split autour de /images/ sur sauce.imageUrl ce qui a pour effet de créer un tableau avec en
+//    premier élément en index (0) la chaine de caractère qui se trouve avant '/images/' soit http://localhost:3000 et en second
+//    élément en index (1) la chaine de caractère qui se trouve après '/images/' et on ne concerve que le second élément du tableau soi
+//    sauce-tomate.jpg1623672963145.jpg
+//    Ensuite on construit l'adresse du fichier à supprimer en concaténant 'images/' avec sauce-tomate.jpg1623672963145.jpg dans une
+//    constante filename et on utilise File System de Node (fs) pour supprimer ce fichier.
+//
+//
+// Ensuite on utilise l'opérateur ternaire sur req.file ( condition ? exprSiVrai : exprSiFaux)
+//
+// si req.file existe on affecte à sauceObject un object contenant le req.body.sauce parsé et l'url du fichier image
+//        que l'on a reconstitué en concatenant http: (req.protocol) avec '://' + localhost:3000 (contenu de la variable req.get("host")) + la chaine
+//        /images/ + le contenu de la variable req.file.name se qui nous donne par ex.
+//        http://localhost:3000/images/sauce-tomate.jpg1623672963145.jpg
+// dans le cas ou le fichier req.file n'existe pas (req.file undefined)
+//        on va utiliser l'opérateur spread (three dot ...)  ce permet d'étendre req.body sur les paires de clés-valeurs de sauceObject
+//
 // En résumé
 // Si on trouve un fichier : on récupère la chaine de caractère, on la parse en objet et on modifie l'imageUrl
 // sinon on prend simplement le corps de la requête
@@ -88,6 +112,22 @@ exports.getOneSauce = (req, res, next) => {
 // Route put /api/sauces/:id
 //
 exports.modifySauce = (req, res, next) => {
+  ///
+  if (req.file) {
+    Sauce.findOne({ _id: req.params.id })
+      .then((sauce) => {
+        const filename = sauce.imageUrl.split("/images/")[1];
+        fs.unlink(`images/${filename}`, () => {
+          console.log(
+            "fichier image supprimé ",
+            filename,
+            " dans le dossier image"
+          );
+        });
+      })
+      .catch((error) => res.status(500).json({ error }));
+  }
+  ///
   const sauceObject = req.file
     ? {
         ...JSON.parse(req.body.sauce),
@@ -96,6 +136,7 @@ exports.modifySauce = (req, res, next) => {
         }`,
       }
     : { ...req.body };
+
   Sauce.updateOne(
     { _id: req.params.id },
     { ...sauceObject, _id: req.params.id }
