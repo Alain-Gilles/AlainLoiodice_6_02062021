@@ -70,22 +70,22 @@ exports.getOneSauce = (req, res, next) => {
 // L'utilisateur a modifié l'image de la sauce ou l'utilisateur n'a pas modifié l'image de la sauce
 //
 // Comment détecte t-on que l'image a été modifiée ?
-// par la pésence dans la requête d'un req.file (objet qui contient entre autre le file name
+// par la présence dans la requête d'un req.file (objet qui contient entre autre le file name
 // par ex. filename: 'sauces-tomates-ketchup.jpg1623666210937.jpg')
 //
 // Si l'utilisateur a modifié l'image de la sauce,
 //            il faut supprimer dans le dossier images l'ancienne photo
 //            le format de la requête contiendra l'élément form-data ainsi qu'un fichier req.file
 //
-// Si l'utilisateur n'a pas modifier l'image de la sauce le format de la requête contiendra les données JSON
+// Si l'utilisateur n'a pas modifie l'image de la sauce le format de la requête contiendra les données JSON
 // Il faut commencer par supprimer l'ancienne image dans le répertoire images
 //
 // On commence par tester si req.file existe
 //    si c'est le cas l'image de la sauce a été modifié
-//    on effectue un Sauce.findOne avec comme paramètre de sélection _id contenu dans la base doit-être égal à l'id présent dans les paramètres de la requête
+//    on effectue un Sauce.findOne avec comme paramètre de sélection l'_id contenu dans la base qui doit-être égal à l'id présent dans les paramètres de la requête
 //    Si la sauce est trouvé, on va récupérer dans sauce.imageUrl qui est de type http://localhost:3000/images/sauce-tomate.jpg1623672963145.jpg
 //    la chaine de caractères qui suit la chaine '/images/' et qui contient le nom du fichier à supprimer
-//    pour se faire on effectue un split autour de /images/ sur sauce.imageUrl ce qui a pour effet de créer un tableau avec en
+//    Pour se faire on effectue un split autour de /images/ sur sauce.imageUrl ce qui a pour effet de créer un tableau avec en
 //    premier élément en index (0) la chaine de caractère qui se trouve avant '/images/' soit http://localhost:3000 et en second
 //    élément en index (1) la chaine de caractère qui se trouve après '/images/' et on ne concerve que le second élément du tableau soi
 //    sauce-tomate.jpg1623672963145.jpg
@@ -101,12 +101,6 @@ exports.getOneSauce = (req, res, next) => {
 //        http://localhost:3000/images/sauce-tomate.jpg1623672963145.jpg
 // dans le cas ou le fichier req.file n'existe pas (req.file undefined)
 //        on va utiliser l'opérateur spread (three dot ...)  ce permet d'étendre req.body sur les paires de clés-valeurs de sauceObject
-//
-// En résumé
-// Si on trouve un fichier : on récupère la chaine de caractère, on la parse en objet et on modifie l'imageUrl
-// sinon on prend simplement le corps de la requête
-// dans Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
-// ...sauceObject  correspond à l'objet que l'on a créé peut importe son format
 //
 // req.param()recherche le chemin d'URL, le corps et la chaîne de requête de la demande ( dans cet ordre ) pour le paramètre spécifié
 // Route put /api/sauces/:id

@@ -115,7 +115,7 @@ app.use(bodyParser.json());
 // (un sous répertoire de notre répertoire de base, __dirname) à chaque fois qu'elle
 // reçoit une requête vers la route /images.
 //
-// La méthodepath.join() joint tous les pathsegments donnés en utilisant le séparateur spécifique
+// La méthode path.join() joint tous les pathsegments donnés en utilisant le séparateur spécifique
 // à la plate-forme comme délimiteur, puis normalise le chemin résultant.
 // Ex path.join('/foo', 'bar', 'baz/asdf', 'quux', '..'); => '/foo/bar/baz/asdf'
 //
