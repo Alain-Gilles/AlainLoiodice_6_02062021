@@ -89,7 +89,7 @@ exports.signup = (req, res, next) => {
   //
   /////////////////////////////////////////////////////
   //
-  // Si le mot de passe correspond au shéma (il est considéré comme valide)
+  // Si le mot de passe correspond au schéma (il est considéré comme valide)
   //
   if (schema.validate(req.body.password)) {
     //

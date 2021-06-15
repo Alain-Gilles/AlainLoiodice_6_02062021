@@ -10,6 +10,17 @@
 //
 const express = require("express");
 //
+// package helmet
+// Helmet vous aide à protéger votre application construite avec Node.js et Express
+// de certaines des vulnérabilités du Web tels que XSS, l'utilisation abisive de certificats, etc...en configurant de manière
+// appropriée des en-têtes de réponse http .
+//
+// XSS ou CSS Cross Site Scripting attaques par injection de données.
+// Ces attaques sont utilisées pour tout, du vol de données à la dégradation de sites en passant par la
+// distribution de logiciels malveillants
+//
+const helmet = require("helmet");
+//
 // Pour gérer les variables d'environnement on a besoin d'importer le package dotenv
 // Il s'agit de variables locales mises à disposition d'une application.
 // Ce module charge les variables d'environnement à partir d'un fichier .env que vous créez et
@@ -70,6 +81,8 @@ mongoose
   .catch(() => console.log("Connexion à MongoDB échouée !"));
 
 const app = express();
+
+app.use(helmet());
 
 // CORS  Cross Origin Ressource Sharing
 // La sécurité CORS est une mesure de sécurité par défaut pour empêcher l'utilisation de ressources
