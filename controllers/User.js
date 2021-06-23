@@ -23,7 +23,18 @@ const jwt = require("jsonwebtoken");
 //
 const User = require("../models/User");
 //
+// On va utiliser crypto-js pour Encrypter les e-mail  $ npm install crypto-js
+//
+// Nous allons utiliser l'algorithmes de chiffrement AES (Advanced Encryption System).
+//
+const CryptoJS = require("crypto-js");
+//
+// Utilisation du packgae email-validator pour controler la validité de l'email transmis par le frontend
+//
+var validator = require("email-validator");
+//
 exports.signup = (req, res, next) => {
+  //
   //
   // Logique de la fonction signup
   // La fonction signup va crypter le mot de passe et créer un nouveau user avec le mot de passe crypté
@@ -79,57 +90,88 @@ exports.signup = (req, res, next) => {
     schema.validate(req.body.password)
   );
   //
-  // On test au préalable la validité du mot de passe par appel du module password-validator
-  // On lui passe la chaine de caractères à valider ici req.body.password
-  // on a auparavant défini dans la variable shéma le schéma des controles que l'on veut effectuer
-  // Le mot de passe doit être au minimum de 8 caractères et de 100 caractères au maximum
-  // Il doit contenir des Majuscules et des minuscules
-  // et au mons deux chiffres
-  // Les espaces ne sont pas autorisés
+  // On teste  la vailidité de l'email envoyé par le frontend
   //
-  /////////////////////////////////////////////////////
-  //
-  // Si le mot de passe correspond au schéma (il est considéré comme valide)
-  //
-  if (schema.validate(req.body.password)) {
+  if (validator.validate(req.body.email)) {
     //
-    ////////////////////////////////////////////////////
+    // l'email est valide
     //
-    bcrypt
-      .hash(req.body.password, 10)
-      .then((hash) => {
-        const user = new User({
-          email: req.body.email,
-          password: hash,
-        });
-        //
-        // on utilise la methode save de notre user pour l'enregistrer dans la base de données
-        // dans le then on renvoie un status 201 pour une création de ressources et un message : utilisateur créé
-        // dans le catch on renvoie un code status 400 (Bad Request )
-        //
-        user
-          .save()
-          .then(() => res.status(201).json({ message: "Utilisateur créé !" }))
-          .catch((error) => res.status(400).json({ error }));
-      })
-      .catch((error) => res.status(500).json({ error }));
     //
-    ////////////////////////////////////////////////////
+    // On teste la validité du mot de passe par appel du module password-validator
+    // On lui passe la chaine de caractères à valider ici req.body.password
+    // on a auparavant défini dans la variable shéma le schéma des controles que l'on veut effectuer
+    // Le mot de passe doit être au minimum de 8 caractères et de 100 caractères au maximum
+    // Il doit contenir des Majuscules et des minuscules
+    // et au mons deux chiffres
+    // Les espaces ne sont pas autorisés
     //
-    // Le mot de passe ne correspond pas au shema (donc considéré comme invalide)
+    /////////////////////////////////////////////////////
     //
-    // L'instruction try...catch regroupe des instructions à exécuter et définit une réponse si l'une de ces instructions provoque une exception.
-    // L'instruction throw permet de lever une exception définie par l'utilisateur.
-    // L'exécution de la fonction courante sera stoppée (les instructions situées après l'instruction throw ne seront pas exécutées)
-    // et le contrôle sera passé au premier bloc catch de la pile d'appels.
+    // Si le mot de passe correspond au schéma (il est considéré comme valide)
     //
+    if (schema.validate(req.body.password)) {
+      //
+      ////////////////////////////////////////////////////
+      //
+      bcrypt
+        .hash(req.body.password, 10)
+        .then((hash) => {
+          //
+          // encryptage de l'email
+          //
+          key = process.env.KEY;
+          iv = process.env.IV;
+          var ciphertext = CryptoJS.AES.encrypt(
+            req.body.email,
+            CryptoJS.enc.Base64.parse(key),
+            { iv: CryptoJS.enc.Base64.parse(iv) }
+          ).toString();
+          console.log("signup ciphertext  :", ciphertext);
+          //
+          // const user = new User({
+          //   email: req.body.email,
+          //   password: hash,
+          // });
+          const user = new User({
+            email: ciphertext,
+            password: hash,
+          });
+          //
+          // on utilise la methode save de notre user pour l'enregistrer dans la base de données
+          // dans le then on renvoie un status 201 pour une création de ressources et un message : utilisateur créé
+          // dans le catch on renvoie un code status 400 (Bad Request )
+          //
+          user
+            .save()
+            .then(() => res.status(201).json({ message: "Utilisateur créé !" }))
+            .catch((error) => res.status(400).json({ error }));
+        })
+        .catch((error) => res.status(500).json({ error }));
+      //
+      ////////////////////////////////////////////////////
+      //
+      // Le mot de passe ne correspond pas au shema (donc considéré comme invalide)
+      //
+      // L'instruction try...catch regroupe des instructions à exécuter et définit une réponse si l'une de ces instructions provoque une exception.
+      // L'instruction throw permet de lever une exception définie par l'utilisateur.
+      // L'exécution de la fonction courante sera stoppée (les instructions situées après l'instruction throw ne seront pas exécutées)
+      // et le contrôle sera passé au premier bloc catch de la pile d'appels.
+      //
+    } else {
+      try {
+        throw "Le mot de passe est erroné de 8 à 100 caractères, dont Majuscules, minuscules, au moins 2 chiffres et pas espace !";
+      } catch (error) {
+        res.status(400).json({ error });
+      }
+    }
   } else {
     try {
-      throw "Le mot de passe est erroné de 8 à 100 caractères, dont Majuscules, minuscules, au moins 2 chiffres et pas espace !";
+      throw "L'email saisie n'est pas un email valide";
     } catch (error) {
       res.status(400).json({ error });
     }
   }
+
   //
   /////////////////////////////////////////////////////
   //
@@ -138,7 +180,7 @@ exports.signup = (req, res, next) => {
 // login : middleware (fonction) login qui permet aux utilisateurs existants de se connecter à l'application
 // Fonction qui récupère l'utilisateur de la base qui correspond à l'adresse mail entrée.
 // Si l'email n'est pas trouvé dans la base on retourne une erreur.
-// Sino on compare le mot de passe entrée avec le hash contenu dans la base de données.
+// Sinon on compare le mot de passe entrée avec le hash contenu dans la base de données.
 // Si la comparaison n'est pas concluente on renvoie une erreur.
 // Si la comparaison est OK, l'utilisateur a rentré des identifiants valables, on lui renvoie
 // son user_id et un token qui servira de token d'authentification
@@ -164,15 +206,29 @@ exports.signup = (req, res, next) => {
 // avec message mot de passe incorrect.
 // Dans le cas contraire le mot de passe est OK. On renvoie un status 200 OK et on renvoie un objet JSON qui contient
 // un user._id    id de l'utilisateur pour la base ainsi qu'un 'TOKEN'. La réponse sera envoyée, la connexion sera validée.
-// token : on va appeler une fonction de jsonwebtoken, la fonction sign() avec comme premier argument les données que l'on
-// veut encoder (le payload) ici un objet avec le userId qui sera l'identifiant du user comme cela on est sur que cette
+// token : on va appeler une fonction de jsonwebtoken, la fonction sign() creait la signature du JWT avec comme premier argument les données que l'on
+// veut transmettre à l'application (le payload) ici un objet avec le userId qui sera l'identifiant du user comme cela on est sur que cette
 // requete corresponde bien au userId.
-// Le second argument c'est la clé secrète por l'encodage
+// Le second argument c'est la clé secrète pour la génération de la signature
 // Le troisème argument est un argument de configuration ou l'on va appliquer une expiration pour notre token de 24 heures.
 // Chaque token durear 24h , s'il a plus de 24h il ne sera plus considéré comme valable.
 //
 exports.login = (req, res, next) => {
-  User.findOne({ email: req.body.email })
+  //
+  // Encodage de email passé dans req.body
+  //
+  key = process.env.KEY;
+  iv = process.env.IV;
+  var ciphertext = CryptoJS.AES.encrypt(
+    req.body.email,
+    CryptoJS.enc.Base64.parse(key),
+    { iv: CryptoJS.enc.Base64.parse(iv) }
+  ).toString();
+  console.log("login ciphertext  :", ciphertext);
+  //
+  //
+  // User.findOne({ email: req.body.email })
+  User.findOne({ email: ciphertext })
     .then((user) => {
       if (!user) {
         return res.status(401).json({ error: "Utilisateur non trouvé !" });
@@ -194,28 +250,3 @@ exports.login = (req, res, next) => {
     })
     .catch((error) => res.status(500).json({ error }));
 };
-//////////////
-//////////////
-// exports.login = (req, res, next) => {
-//   User.findOne({ email: req.body.email })
-//     .then((user) => {
-//       if (!user) {
-//         return res.status(401).json({ error: "Utilisateur non trouvé !" });
-//       }
-//       bcrypt
-//         .compare(req.body.password, user.password)
-//         .then((valid) => {
-//           if (!valid) {
-//             return res.status(401).json({ error: "Mot de passe incorrect !" });
-//           }
-//           res.status(200).json({
-//             userId: user._id,
-//             token: jwt.sign({ userId: user._id }, "RANDOM_TOKEN_SECRET", {
-//               expiresIn: "24h",
-//             }),
-//           });
-//         })
-//         .catch((error) => res.status(500).json({ error }));
-//     })
-//     .catch((error) => res.status(500).json({ error }));
-// };

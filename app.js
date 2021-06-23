@@ -12,7 +12,7 @@ const express = require("express");
 //
 // package helmet
 // Helmet vous aide à protéger votre application construite avec Node.js et Express
-// de certaines des vulnérabilités du Web tels que XSS, l'utilisation abisive de certificats, etc...en configurant de manière
+// de certaines des vulnérabilités du Web tels que XSS, l'utilisation abusive de certificats, etc...en configurant de manière
 // appropriée des en-têtes de réponse http .
 //
 // XSS ou CSS Cross Site Scripting attaques par injection de données.
@@ -67,16 +67,14 @@ const userRoutes = require("./routes/User");
 // parametrage de l'acces à mongo bd addresse serveur et MP
 //
 // avec mongoose connect nous précisons sur quelle base de données nous allons travailler
-// Remarque le user et le mot de passe sont stockés dans une variable environnement
-// dossier config fichier .env variable DB_USER_PASS
+// le chemin d'accès à la base est stocké dans une variable environnement user+mot de passe+cluster
+// dossier config fichier .env variable MONGO_URI
 //
 mongoose
-  .connect(
-    "mongodb+srv://" +
-      process.env.DB_USER_PASS +
-      "@cluster0.buaka.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
-    { useNewUrlParser: true, useUnifiedTopology: true }
-  )
+  .connect("mongodb+srv://" + process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("Connexion à MongoDB réussie !"))
   .catch(() => console.log("Connexion à MongoDB échouée !"));
 
