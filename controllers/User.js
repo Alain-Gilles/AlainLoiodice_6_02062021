@@ -90,7 +90,7 @@ exports.signup = (req, res, next) => {
     schema.validate(req.body.password)
   );
   //
-  // On teste  la vailidité de l'email envoyé par le frontend
+  // On teste  la validité de l'email envoyé par le frontend
   //
   if (validator.validate(req.body.email)) {
     //
