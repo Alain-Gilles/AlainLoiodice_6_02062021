@@ -177,7 +177,7 @@ En effet nous avons besoin pour le bon fonctionnement de cette application de de
 La partie frontend s'exécute sur le localhost:4200 (http://localhost4200)
 Cette application est initialisée à partir du premier terminal de commandes
 
-La partie backend s'exécute sur le localhost:3000
+La partie backend ecoute sur le port 3000 (listening on port 3000)
 Cette application est initialisée à partir du second terminal de commandes
 
 =================================
@@ -358,7 +358,7 @@ eIndexes instead.
 Connexion à MongoDB réussie !
 
 ========================================
-Le serveur est installé sur le port 3000
+Le serveur écoute sur le port 3000
 ========================================
 
 Pour déconnecter le serveur : Ctrl+C sur la ligne de commande.
